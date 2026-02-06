@@ -1,0 +1,23 @@
+{
+  "name": "diff-multi",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.20.0",
+  "devDependencies": {
+    "@types/diff-match-patch": "^1.0.36",
+    "vitest": "^4.0.13"
+  },
+  "dependencies": {
+    "@types/node": "^24.10.1",
+    "diff-match-patch": "^1.0.5",
+    "typescript": "^5.9.3"
+  }
+}
