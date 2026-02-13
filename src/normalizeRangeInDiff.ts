@@ -109,8 +109,7 @@ function normalizeRangeForId(diff: Change[], targetId: string): Change[] {
   let firstContentEditIdx = -1;
   let lastContentEditIdx = -1;
 
-  for (let i = 0; i < diff.length; i++) {
-    const change = diff[i];
+  for (const [i, change] of diff.entries()) {
     if (change.op === 'equal') continue;
     if (!('id' in change) || change.id !== targetId) continue;
 
@@ -137,7 +136,9 @@ function normalizeRangeForId(diff: Change[], targetId: string): Change[] {
   // Handle RANGE_START: move it to just before first content edit if needed
   if (rangeStartIdx !== -1 && rangeStartIdx > firstContentEditIdx) {
     const [rangeStartChange] = result.splice(rangeStartIdx, 1);
-    result.splice(firstContentEditIdx, 0, rangeStartChange);
+    if (rangeStartChange) {
+      result.splice(firstContentEditIdx, 0, rangeStartChange);
+    }
 
     // Recalculate indices after modification
     rangeEndIdx = findRangeEndIdx(result, targetId);
@@ -147,9 +148,11 @@ function normalizeRangeForId(diff: Change[], targetId: string): Change[] {
   // Handle RANGE_END: move it to just after last content edit if needed
   if (rangeEndIdx !== -1 && rangeEndIdx < lastContentEditIdx) {
     const [rangeEndChange] = result.splice(rangeEndIdx, 1);
-    // After removal, lastContentEditIdx shifts down by 1 if it was after rangeEndIdx
-    const adjustedLastIdx = rangeEndIdx < lastContentEditIdx ? lastContentEditIdx - 1 : lastContentEditIdx;
-    result.splice(adjustedLastIdx + 1, 0, rangeEndChange);
+    if (rangeEndChange) {
+      // After removal, lastContentEditIdx shifts down by 1 if it was after rangeEndIdx
+      const adjustedLastIdx = rangeEndIdx < lastContentEditIdx ? lastContentEditIdx - 1 : lastContentEditIdx;
+      result.splice(adjustedLastIdx + 1, 0, rangeEndChange);
+    }
   }
 
   return result;
@@ -159,8 +162,7 @@ function normalizeRangeForId(diff: Change[], targetId: string): Change[] {
  * Finds the index of RANGE_END for a given id.
  */
 function findRangeEndIdx(diff: Change[], targetId: string): number {
-  for (let i = 0; i < diff.length; i++) {
-    const change = diff[i];
+  for (const [i, change] of diff.entries()) {
     if (change.op === 'insert' && 'id' in change && change.id === targetId && change.text === RANGE_END) {
       return i;
     }
@@ -173,8 +175,7 @@ function findRangeEndIdx(diff: Change[], targetId: string): number {
  */
 function findLastContentEditIdx(diff: Change[], targetId: string): number {
   let lastIdx = -1;
-  for (let i = 0; i < diff.length; i++) {
-    const change = diff[i];
+  for (const [i, change] of diff.entries()) {
     if (change.op !== 'equal' && 'id' in change && change.id === targetId && !isRangeMarker(change)) {
       lastIdx = i;
     }
