@@ -1,3 +1,5 @@
+import { RANGE_START, RANGE_END } from './constants';
+
 type DiffOp = {
   op: 'equal' | 'delete' | 'insert';
   text: string;
@@ -11,24 +13,24 @@ const ANSI = {
   underlineColorReset: '\x1b[59m',
 };
 
-// Color indices for 256-color mode
+// Color indices for 256-color mode (editor-friendly palette for dark backgrounds)
 const COLOR_INDICES = [
-  196, // red
-  33,  // blue
-  200, // magenta
-  226, // yellow
-  51,  // cyan
-  46,  // green
+  147, // lavender
+  110, // soft blue
+  216, // peach
+  182, // mauve
+  73,  // muted teal
+  222, // soft gold
 ];
 
 // Foreground colors for strikethrough (needs colored text)
 const FG_COLORS = [
-  '\x1b[38;5;196m', // red
-  '\x1b[38;5;33m',  // blue
-  '\x1b[38;5;200m', // magenta
-  '\x1b[38;5;226m', // yellow
-  '\x1b[38;5;51m',  // cyan
-  '\x1b[38;5;46m',  // green
+  '\x1b[38;5;147m', // lavender
+  '\x1b[38;5;110m', // soft blue
+  '\x1b[38;5;216m', // peach
+  '\x1b[38;5;182m', // mauve
+  '\x1b[38;5;73m',  // muted teal
+  '\x1b[38;5;222m', // soft gold
 ];
 
 export function visualizeDiff(diff: DiffOp[]): string {
@@ -61,6 +63,8 @@ export function visualizeDiff(diff: DiffOp[]): string {
 export function logDiff(...args: (string | DiffOp[])[]): void {
   const output = args
     .map((arg) => (typeof arg === 'string' ? arg : visualizeDiff(arg)))
-    .join(' ');
+    .join(' ')
+    .replaceAll(RANGE_START, '⟦')
+    .replaceAll(RANGE_END, '⟧');
   console.log(output);
 }

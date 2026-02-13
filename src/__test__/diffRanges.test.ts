@@ -1,0 +1,70 @@
+import { describe, it, expect } from "vitest";
+import { semanticDiff } from "../semanticDiff";
+import { logDiff } from "../visualizeDiff";
+import { RANGE_START, RANGE_END } from "../constants";
+
+describe("diffRanges", () => {
+  it("should diff with a small insertion edit", () => {
+    const oldText = "The quick brown fox jumps over the lazy dog.";
+    const newText = `The quick brown fox ${RANGE_START}quickly ${RANGE_END}jumps over the lazy dog.`;
+
+    const diff = semanticDiff(oldText, newText, "edit-1");
+
+    expect(diff).toEqual([
+      { op: "equal", text: "The quick brown fox " },
+      { op: "insert", text: `${RANGE_START}quickly ${RANGE_END}`, id: "edit-1" },
+      { op: "equal", text: "jumps over the lazy dog." },
+    ]);
+  });
+
+  it("should diff with insertion and deletion where semantic range covers entire sentence", () => {
+    const oldText = "I like cats. Dogs are fun. Birds can fly.";
+    const newText = `I like cats. ${RANGE_START}Dogs are boring.${RANGE_END} Birds can fly.`;
+
+    const diff = semanticDiff(oldText, newText, "edit-1");
+
+    logDiff(diff);
+    expect(diff).toEqual([
+      { op: "equal", text: "I like cats. " },
+      { op: "insert", text: RANGE_START, id: "edit-1" },
+      { op: "equal", text: "Dogs are " },
+      { op: "delete", text: "fun.", id: "edit-1" },
+      { op: "insert", text: `boring.${RANGE_END}`, id: "edit-1" },
+      { op: "equal", text: " Birds can fly." },
+    ]);
+  });
+
+  it("should diff with semantic range covering the first sentence", () => {
+    const oldText = "I like cats. Dogs are fun. Birds can fly.";
+    const newText = `${RANGE_START}I hate cats.${RANGE_END} Dogs are fun. Birds can fly.`;
+
+    const diff = semanticDiff(oldText, newText, "edit-1");
+
+    logDiff(diff);
+    expect(diff).toEqual([
+      { op: "insert", text: RANGE_START, id: "edit-1" },
+      { op: "equal", text: "I " },
+      { op: "delete", text: "lik", id: "edit-1" },
+      { op: "insert", text: "hat", id: "edit-1" },
+      { op: "equal", text: "e cats." },
+      { op: "insert", text: RANGE_END, id: "edit-1" },
+      { op: "equal", text: " Dogs are fun. Birds can fly." },
+    ]);
+  });
+
+  it("should diff with semantic range covering the final sentence", () => {
+    const oldText = "I like cats. Dogs are fun. Birds can fly.";
+    const newText = `I like cats. Dogs are fun. ${RANGE_START}Birds can swim.${RANGE_END}`;
+
+    const diff = semanticDiff(oldText, newText, "edit-1");
+
+    logDiff(diff);
+    expect(diff).toEqual([
+      { op: "equal", text: "I like cats. Dogs are fun. " },
+      { op: "insert", text: RANGE_START, id: "edit-1" },
+      { op: "equal", text: "Birds can " },
+      { op: "delete", text: "fly.", id: "edit-1" },
+      { op: "insert", text: `swim.${RANGE_END}`, id: "edit-1" },
+    ]);
+  });
+});
