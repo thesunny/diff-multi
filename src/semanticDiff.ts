@@ -1,5 +1,6 @@
 import type { Diff } from "diff-match-patch";
 import { DIFF_DELETE, DIFF_INSERT, diff_match_patch } from "diff-match-patch";
+import { normalizeRangeInDiff } from "./normalizeRangeInDiff";
 
 type InsertChange = {
   op: "insert";
@@ -39,7 +40,7 @@ export function semanticDiff(
 
   dmp.diff_cleanupSemantic(rawDiffs);
 
-  return rawDiffs.map<Change>(([op, data]) => {
+  const changes = rawDiffs.map<Change>(([op, data]) => {
     if (op === DIFF_INSERT) {
       return {
         op: "insert",
@@ -59,4 +60,6 @@ export function semanticDiff(
       text: data,
     };
   });
+
+  return normalizeRangeInDiff(changes);
 }

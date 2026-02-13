@@ -14,7 +14,9 @@ describe("diffRanges", () => {
     logDiff(diff);
     expect(diff).toEqual([
       { op: "equal", text: "The quick brown fox " },
-      { op: "insert", text: `${RANGE_START}quickly ${RANGE_END}`, id: "edit-1" },
+      { op: "insert", text: RANGE_START, id: "edit-1" },
+      { op: "insert", text: "quickly ", id: "edit-1" },
+      { op: "insert", text: RANGE_END, id: "edit-1" },
       { op: "equal", text: "jumps over the lazy dog." },
     ]);
   });
@@ -47,7 +49,8 @@ describe("diffRanges", () => {
       { op: "insert", text: RANGE_START, id: "edit-1" },
       { op: "equal", text: "Dogs are " },
       { op: "delete", text: "fun.", id: "edit-1" },
-      { op: "insert", text: `boring.${RANGE_END}`, id: "edit-1" },
+      { op: "insert", text: "boring.", id: "edit-1" },
+      { op: "insert", text: RANGE_END, id: "edit-1" },
       { op: "equal", text: " Birds can fly." },
     ]);
   });
@@ -82,7 +85,8 @@ describe("diffRanges", () => {
       { op: "insert", text: RANGE_START, id: "edit-1" },
       { op: "equal", text: "Birds can " },
       { op: "delete", text: "fly.", id: "edit-1" },
-      { op: "insert", text: `swim.${RANGE_END}`, id: "edit-1" },
+      { op: "insert", text: "swim.", id: "edit-1" },
+      { op: "insert", text: RANGE_END, id: "edit-1" },
     ]);
   });
 
@@ -117,7 +121,8 @@ describe("diffRanges", () => {
       { op: "insert", text: RANGE_START, id: "edit-2" },
       { op: "equal", text: "Dogs are " },
       { op: "delete", text: "fun.", id: "edit-2" },
-      { op: "insert", text: `boring.${RANGE_END}`, id: "edit-2" },
+      { op: "insert", text: "boring.", id: "edit-2" },
+      { op: "insert", text: RANGE_END, id: "edit-2" },
       { op: "equal", text: " Birds can fly." },
     ]);
   });
@@ -152,7 +157,8 @@ describe("diffRanges", () => {
       { op: "insert", text: RANGE_START, id: "edit-2" },
       { op: "equal", text: "Dogs are " },
       { op: "delete", text: "fun.", id: "edit-2" },
-      { op: "insert", text: `boring.${RANGE_END}`, id: "edit-2" },
+      { op: "insert", text: "boring.", id: "edit-2" },
+      { op: "insert", text: RANGE_END, id: "edit-2" },
       { op: "equal", text: " Birds can fly." },
     ]);
   });
@@ -192,12 +198,14 @@ describe("diffRanges", () => {
       { op: "insert", text: RANGE_START, id: "edit-2" },
       { op: "equal", text: "Dogs are " },
       { op: "delete", text: "fun.", id: "edit-2" },
-      { op: "insert", text: `boring.${RANGE_END}`, id: "edit-2" },
+      { op: "insert", text: "boring.", id: "edit-2" },
+      { op: "insert", text: RANGE_END, id: "edit-2" },
       { op: "equal", text: " " },
       { op: "insert", text: RANGE_START, id: "edit-3" },
       { op: "equal", text: "Birds can " },
       { op: "delete", text: "fly.", id: "edit-3" },
-      { op: "insert", text: `swim.${RANGE_END}`, id: "edit-3" },
+      { op: "insert", text: "swim.", id: "edit-3" },
+      { op: "insert", text: RANGE_END, id: "edit-3" },
     ]);
   });
 
@@ -235,11 +243,13 @@ describe("diffRanges", () => {
       { op: "insert", text: RANGE_START, id: "edit-2" },
       { op: "equal", text: "Dogs are " },
       { op: "delete", text: "fun.", id: "edit-2" },
-      { op: "insert", text: `boring.${RANGE_END}`, id: "edit-2" },
+      { op: "insert", text: "boring.", id: "edit-2" },
+      { op: "insert", text: RANGE_END, id: "edit-2" },
       { op: "insert", text: RANGE_START, id: "edit-3" },
       { op: "equal", text: "Birds can " },
       { op: "delete", text: "fly.", id: "edit-3" },
-      { op: "insert", text: `swim.${RANGE_END}`, id: "edit-3" },
+      { op: "insert", text: "swim.", id: "edit-3" },
+      { op: "insert", text: RANGE_END, id: "edit-3" },
     ]);
   });
 });

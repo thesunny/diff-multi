@@ -1,4 +1,5 @@
 import type { Change } from "./semanticDiff";
+import { normalizeRangeInDiff } from "./normalizeRangeInDiff";
 
 type OperationMap = Map<number, { text: string; id: string }[]>;
 
@@ -197,10 +198,16 @@ export function mergeDiffs(...diffs: Change[][]): Change[] | null {
   const first = diffs[0]!;
   const rest = diffs.slice(1);
 
-  return rest.reduce<Change[] | null>((combined, current) => {
+  const result = rest.reduce<Change[] | null>((combined, current) => {
     if (combined === null) {
       return null;
     }
     return mergeTwoDiffs(combined, current);
   }, first);
+
+  if (result === null) {
+    return null;
+  }
+
+  return normalizeRangeInDiff(result);
 }
