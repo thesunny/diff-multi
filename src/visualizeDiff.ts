@@ -61,14 +61,15 @@ export function visualizeDiff(diff: DiffOp[]): string {
 }
 
 export function logDiff(...args: (string | DiffOp[] | null)[]): void {
-  const output = args
-    .map((arg) => {
-      if (arg === null) return 'null';
-      if (typeof arg === 'string') return arg;
-      return visualizeDiff(arg);
-    })
-    .join(' ')
-    .replaceAll(RANGE_START, '⟦')
-    .replaceAll(RANGE_END, '⟧');
-  console.log(output);
+  for (const arg of args) {
+    let output: string;
+    if (arg === null) {
+      output = 'null';
+    } else if (typeof arg === 'string') {
+      output = arg;
+    } else {
+      output = visualizeDiff(arg);
+    }
+    console.log(output.replaceAll(RANGE_START, '⟦').replaceAll(RANGE_END, '⟧'));
+  }
 }
