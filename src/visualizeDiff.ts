@@ -60,9 +60,13 @@ export function visualizeDiff(diff: DiffOp[]): string {
     .join('');
 }
 
-export function logDiff(...args: (string | DiffOp[])[]): void {
+export function logDiff(...args: (string | DiffOp[] | null)[]): void {
   const output = args
-    .map((arg) => (typeof arg === 'string' ? arg : visualizeDiff(arg)))
+    .map((arg) => {
+      if (arg === null) return 'null';
+      if (typeof arg === 'string') return arg;
+      return visualizeDiff(arg);
+    })
     .join(' ')
     .replaceAll(RANGE_START, '⟦')
     .replaceAll(RANGE_END, '⟧');
