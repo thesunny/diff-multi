@@ -4,7 +4,7 @@ import { layerDiffs } from "../layerDiffs";
 import { logDiff } from "../visualizeDiff";
 
 // Set to true to log test name, existingDiff, targetText, and result for each test
-const DEBUG = true;
+const DEBUG = false;
 
 function debugLog(
   taskName: string,
@@ -29,10 +29,10 @@ describe("layerDiffs", () => {
     const targetText = "The quick fox";
     const result = layerDiffs(existingDiff, targetText, "2");
 
+    debugLog(ctx.task.name, existingDiff, targetText, result);
+
     // Should have no changes - deleted text "brown " is preserved in document structure
     expect(result).toEqual([{ op: "equal", text: "The quick brown fox" }]);
-
-    debugLog(ctx.task.name, existingDiff, targetText, result);
   });
 
   it("should layer new insert next to an existing delete", (ctx) => {
@@ -47,14 +47,14 @@ describe("layerDiffs", () => {
     const targetText = "The quick red fox";
     const result = layerDiffs(existingDiff, targetText, "2");
 
+    debugLog(ctx.task.name, existingDiff, targetText, result);
+
     // Should show insert of "red " - deleted "brown " is preserved in document structure
     expect(result).toEqual([
       { op: "equal", text: "The quick brown " },
       { op: "insert", text: "red ", id: "2" },
       { op: "equal", text: "fox" },
     ]);
-
-    debugLog(ctx.task.name, existingDiff, targetText, result);
   });
 
   it("should layer new delete on top of existing insert", (ctx) => {
@@ -69,13 +69,13 @@ describe("layerDiffs", () => {
     const targetText = "The brown fox";
     const result = layerDiffs(existingDiff, targetText, "2");
 
+    debugLog(ctx.task.name, existingDiff, targetText, result);
+
     expect(result).toEqual([
       { op: "equal", text: "The " },
       { op: "delete", text: "quick ", id: "2" },
       { op: "equal", text: "brown fox" },
     ]);
-
-    debugLog(ctx.task.name, existingDiff, targetText, result);
   });
 
   it("should not delete already-deleted text", (ctx) => {
@@ -90,14 +90,14 @@ describe("layerDiffs", () => {
     const targetText = "AXC";
     const result = layerDiffs(existingDiff, targetText, "2");
 
+    debugLog(ctx.task.name, existingDiff, targetText, result);
+
     // Deleted "B" is preserved in document structure, X is inserted after it
     expect(result).toEqual([
       { op: "equal", text: "AB" },
       { op: "insert", text: "X", id: "2" },
       { op: "equal", text: "C" },
     ]);
-
-    debugLog(ctx.task.name, existingDiff, targetText, result);
   });
 
   it("should handle multiple deletions in existing diff", (ctx) => {
@@ -114,9 +114,9 @@ describe("layerDiffs", () => {
     const targetText = "ACE";
     const result = layerDiffs(existingDiff, targetText, "2");
 
-    expect(result).toEqual([{ op: "equal", text: "ABCDE" }]);
-
     debugLog(ctx.task.name, existingDiff, targetText, result);
+
+    expect(result).toEqual([{ op: "equal", text: "ABCDE" }]);
   });
 
   it("should handle existing diff with only equal text", (ctx) => {
@@ -125,13 +125,13 @@ describe("layerDiffs", () => {
     const targetText = "Hello there";
     const result = layerDiffs(existingDiff, targetText, "1");
 
+    debugLog(ctx.task.name, existingDiff, targetText, result);
+
     expect(result).toEqual([
       { op: "equal", text: "Hello " },
       { op: "delete", text: "world", id: "1" },
       { op: "insert", text: "there", id: "1" },
     ]);
-
-    debugLog(ctx.task.name, existingDiff, targetText, result);
   });
 
   it("should handle complex layering scenario", (ctx) => {
@@ -146,6 +146,8 @@ describe("layerDiffs", () => {
     // Now layer: change "quick" to "fast" and "lazy" to "sleepy"
     const targetText = "The fast fox jumps over the sleepy dog.";
     const result = layerDiffs(existingDiff, targetText, "2");
+
+    debugLog(ctx.task.name, existingDiff, targetText, result);
 
     // Should show the new changes only
     // Note: semantic diff may segment differently (e.g., "laz"/"sleep" + common "y")
@@ -162,8 +164,6 @@ describe("layerDiffs", () => {
     expect(
       result.some((c) => c.op === "insert" && c.text.includes("sleep")),
     ).toBe(true);
-
-    debugLog(ctx.task.name, existingDiff, targetText, result);
   });
 
   // Edge cases with adjacent deletions and boundary conditions
