@@ -44,19 +44,19 @@ describe("applyAndMergeDiffs", () => {
     debugLog(ctx.task.name, existingDiff, targetA, targetB, result);
 
     expect(result).toEqual([
-      { op: 'insert', text: '', id: 'edit-A' },
-      { op: 'equal', text: 'The quick brown fox jumps over the ' },
-      { op: 'delete', text: 'lazy', id: 'edit-A' },
-      { op: 'insert', text: 'tired', id: 'edit-A' },
-      { op: 'equal', text: ' dog.' },
-      { op: 'insert', text: '', id: 'edit-A' },
-      { op: 'equal', text: ' ' },
-      { op: 'insert', text: '', id: 'edit-B' },
-      { op: 'equal', text: 'The ' },
-      { op: 'delete', text: 'cat', id: 'edit-B' },
-      { op: 'insert', text: 'kitten', id: 'edit-B' },
-      { op: 'equal', text: ' sleeps on the mat.' },
-      { op: 'insert', text: '', id: 'edit-B' }
+      { op: "insert", text: RANGE_START, id: "edit-A" },
+      { op: "equal", text: "The quick brown fox jumps over the " },
+      { op: "delete", text: "lazy", id: "edit-A" },
+      { op: "insert", text: "tired", id: "edit-A" },
+      { op: "equal", text: " dog." },
+      { op: "insert", text: RANGE_END, id: "edit-A" },
+      { op: "equal", text: " " },
+      { op: "insert", text: RANGE_START, id: "edit-B" },
+      { op: "equal", text: "The " },
+      { op: "delete", text: "cat", id: "edit-B" },
+      { op: "insert", text: "kitten", id: "edit-B" },
+      { op: "equal", text: " sleeps on the mat." },
+      { op: "insert", text: RANGE_END, id: "edit-B" },
     ]);
   });
 });
