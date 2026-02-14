@@ -31,7 +31,7 @@ export type DiffEdit = {
  * @param edits - Array of edits to apply, each with targetText, id, and range positions
  * @returns The merged diff with all edits applied, or null if merge fails
  */
-export function applyAndMergeDiffs(
+export function mergeAndLayerDiffs(
   existingDiff: Change[],
   edits: DiffEdit[]
 ): Change[] | null {

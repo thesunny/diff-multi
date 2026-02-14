@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { applyAndMergeDiffs } from "../applyAndMergeDiffs";
+import { mergeAndLayerDiffs } from "../mergeAndLayerDiffs";
 import { semanticDiff, type Change } from "../semanticDiff";
 import { RANGE_START, RANGE_END } from "../constants";
 import { logDiff } from "../visualizeDiff";
@@ -13,7 +13,7 @@ function debugLog(...args: (string | Change[] | null)[]): void {
 }
 
 
-describe("applyAndMergeDiffs", () => {
+describe("mergeAndLayerDiffs", () => {
   it("should apply two diffs to different parts of a paragraph and merge them", (ctx) => {
     // Start with a paragraph that has multiple sentences with an existing edit
     // (deleted "brown ")
@@ -36,7 +36,7 @@ describe("applyAndMergeDiffs", () => {
     // Edit B: second sentence with "cat" -> "kitten", range covers entire sentence
     const targetB = `The quick fox jumps over the lazy dog. ${RANGE_START}The kitten sleeps on the mat.${RANGE_END}`;
 
-    const result = applyAndMergeDiffs(existingDiff, [
+    const result = mergeAndLayerDiffs(existingDiff, [
       { targetText: targetA, id: "edit-A" },
       { targetText: targetB, id: "edit-B" },
     ]);
