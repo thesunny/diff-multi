@@ -3,6 +3,7 @@ import { semanticDiff, type Change } from "../semanticDiff";
 import { layerDiffs } from "../layerDiffs";
 import { logDiff } from "../visualizeDiff";
 
+// Set to true to log test name, existingDiff, targetText, and result for each test
 const DEBUG = true;
 
 function debugLog(
