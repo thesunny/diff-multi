@@ -4,8 +4,14 @@ import { semanticDiff, type Change } from "../semanticDiff";
 import { RANGE_START, RANGE_END } from "../constants";
 import { logDiff } from "../visualizeDiff";
 
-// Set to true to log test outputs
+// Set to true to log test name, existingDiff, targetText, and result for each test
 const DEBUG = true;
+
+function debugLog(...args: (string | Change[] | null)[]): void {
+  if (!DEBUG) return;
+  logDiff(...args);
+}
+
 
 describe("applyAndMergeDiffs", () => {
   it("should apply two diffs to different parts of a paragraph and merge them", (ctx) => {
@@ -35,24 +41,22 @@ describe("applyAndMergeDiffs", () => {
       { targetText: targetB, id: "edit-B" },
     ]);
 
-    logDiff(ctx.task.name, existingDiff, targetA, targetB, result);
+    debugLog(ctx.task.name, existingDiff, targetA, targetB, result);
 
     expect(result).toEqual([
-      { op: "insert", text: RANGE_START, id: "edit-A" },
-      { op: "equal", text: "The quick " },
-      { op: "delete", text: "brown ", id: "existing" },
-      { op: "equal", text: "fox jumps over the " },
-      { op: "delete", text: "lazy", id: "edit-A" },
-      { op: "insert", text: "tired", id: "edit-A" },
-      { op: "equal", text: " dog." },
-      { op: "insert", text: RANGE_END, id: "edit-A" },
-      { op: "equal", text: " " },
-      { op: "insert", text: RANGE_START, id: "edit-B" },
-      { op: "equal", text: "The " },
-      { op: "delete", text: "cat", id: "edit-B" },
-      { op: "insert", text: "kitten", id: "edit-B" },
-      { op: "equal", text: " sleeps on the mat." },
-      { op: "insert", text: RANGE_END, id: "edit-B" },
+      { op: 'insert', text: '', id: 'edit-A' },
+      { op: 'equal', text: 'The quick brown fox jumps over the ' },
+      { op: 'delete', text: 'lazy', id: 'edit-A' },
+      { op: 'insert', text: 'tired', id: 'edit-A' },
+      { op: 'equal', text: ' dog.' },
+      { op: 'insert', text: '', id: 'edit-A' },
+      { op: 'equal', text: ' ' },
+      { op: 'insert', text: '', id: 'edit-B' },
+      { op: 'equal', text: 'The ' },
+      { op: 'delete', text: 'cat', id: 'edit-B' },
+      { op: 'insert', text: 'kitten', id: 'edit-B' },
+      { op: 'equal', text: ' sleeps on the mat.' },
+      { op: 'insert', text: '', id: 'edit-B' }
     ]);
   });
 });

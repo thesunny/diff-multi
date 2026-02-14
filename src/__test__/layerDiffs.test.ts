@@ -6,14 +6,9 @@ import { logDiff } from "../visualizeDiff";
 // Set to true to log test name, existingDiff, targetText, and result for each test
 const DEBUG = false;
 
-function debugLog(
-  taskName: string,
-  existingDiff: Change[],
-  targetText: string,
-  result: Change[],
-): void {
+function debugLog(...args: (string | Change[] | null)[]): void {
   if (!DEBUG) return;
-  logDiff(taskName, existingDiff, targetText, result);
+  logDiff(...args);
 }
 
 describe("layerDiffs", () => {
