@@ -226,6 +226,104 @@ describe("expandRangeToIncludeDeleteLeftFinal", () => {
     });
   });
 
+  describe("RANGE_START only (no RANGE_END)", () => {
+    it("should move RANGE_START before adjacent delete", () => {
+      const diff: Change[] = [
+        { op: "equal", text: "hello " },
+        { op: "delete", text: "world", id: "1" },
+        { op: "insert", text: RANGE_START, id: "1" },
+        { op: "insert", text: "there", id: "1" },
+      ];
+
+      expect(expandRangeToIncludeDeleteLeftFinal(diff)).toEqual([
+        { op: "equal", text: "hello " },
+        { op: "insert", text: RANGE_START, id: "1" },
+        { op: "delete", text: "world", id: "1" },
+        { op: "insert", text: "there", id: "1" },
+      ]);
+    });
+
+    it("should not move RANGE_START when preceded by equal", () => {
+      const diff: Change[] = [
+        { op: "equal", text: "hello " },
+        { op: "insert", text: RANGE_START, id: "1" },
+        { op: "insert", text: "there", id: "1" },
+      ];
+
+      expect(expandRangeToIncludeDeleteLeftFinal(diff)).toEqual(diff);
+    });
+
+    it("should not move RANGE_START when preceded by insert", () => {
+      const diff: Change[] = [
+        { op: "equal", text: "hello " },
+        { op: "insert", text: "extra ", id: "1" },
+        { op: "insert", text: RANGE_START, id: "1" },
+        { op: "insert", text: "there", id: "1" },
+      ];
+
+      expect(expandRangeToIncludeDeleteLeftFinal(diff)).toEqual(diff);
+    });
+
+    it("should move RANGE_START at beginning when preceded by delete", () => {
+      const diff: Change[] = [
+        { op: "delete", text: "hello", id: "1" },
+        { op: "insert", text: RANGE_START, id: "1" },
+        { op: "insert", text: "goodbye", id: "1" },
+      ];
+
+      expect(expandRangeToIncludeDeleteLeftFinal(diff)).toEqual([
+        { op: "insert", text: RANGE_START, id: "1" },
+        { op: "delete", text: "hello", id: "1" },
+        { op: "insert", text: "goodbye", id: "1" },
+      ]);
+    });
+
+    it("should not move RANGE_START when at the very beginning", () => {
+      const diff: Change[] = [
+        { op: "insert", text: RANGE_START, id: "1" },
+        { op: "insert", text: "hello", id: "1" },
+      ];
+
+      expect(expandRangeToIncludeDeleteLeftFinal(diff)).toEqual(diff);
+    });
+
+    it("should handle multiple RANGE_STARTs without RANGE_ENDs", () => {
+      const diff: Change[] = [
+        { op: "delete", text: "foo", id: "1" },
+        { op: "insert", text: RANGE_START, id: "1" },
+        { op: "insert", text: "bar", id: "1" },
+        { op: "equal", text: " " },
+        { op: "delete", text: "baz", id: "2" },
+        { op: "insert", text: RANGE_START, id: "2" },
+        { op: "insert", text: "qux", id: "2" },
+      ];
+
+      expect(expandRangeToIncludeDeleteLeftFinal(diff)).toEqual([
+        { op: "insert", text: RANGE_START, id: "1" },
+        { op: "delete", text: "foo", id: "1" },
+        { op: "insert", text: "bar", id: "1" },
+        { op: "equal", text: " " },
+        { op: "insert", text: RANGE_START, id: "2" },
+        { op: "delete", text: "baz", id: "2" },
+        { op: "insert", text: "qux", id: "2" },
+      ]);
+    });
+
+    it("should not move RANGE_START when preceded by RANGE_END from another range", () => {
+      // First range has both markers, second has only RANGE_START
+      const diff: Change[] = [
+        { op: "insert", text: RANGE_START, id: "1" },
+        { op: "insert", text: "hello", id: "1" },
+        { op: "insert", text: RANGE_END, id: "1" },
+        { op: "insert", text: RANGE_START, id: "2" },
+        { op: "insert", text: "world", id: "2" },
+      ];
+
+      // Second RANGE_START is preceded by RANGE_END, so it shouldn't move
+      expect(expandRangeToIncludeDeleteLeftFinal(diff)).toEqual(diff);
+    });
+  });
+
   describe("edge cases", () => {
     it("should handle empty diff", () => {
       expect(expandRangeToIncludeDeleteLeftFinal([])).toEqual([]);
