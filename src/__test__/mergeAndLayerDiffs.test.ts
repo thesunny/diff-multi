@@ -324,6 +324,17 @@ describe("How to Use examples", () => {
     "existing",
   );
 
+  it('should validate the existing diff', () => {
+    console.log(existingDiff);
+    expect(existingDiff).toEqual([
+      { op: 'equal', text: 'The ' },
+      { op: 'delete', text: 'quick ', id: 'existing' },
+      { op: 'equal', text: 'brown fox jumped over the ' },
+      { op: 'insert', text: 'extremely ', id: 'existing' },
+      { op: 'equal', text: 'lazy dog.' }
+    ]);
+  });
+
   describe("accepting the insert", () => {
     it("should accept the insert", (ctx) => {
       const targetA = `The brown fox jumped over the ${RANGE_START}extremely ${RANGE_END}lazy dog.`;
@@ -347,7 +358,8 @@ describe("How to Use examples", () => {
     it("should accept the delete (fails)", (ctx) => {
       // This does NOT work because this is a valid interpretation.
       // I think we always need to include at least one character in the range
-      // for it to work properly.
+      // for it to work properly. When there is nothing in the range, maybe
+      // expand out the edges by any deletes?
       const targetA = `The ${RANGE_START}${RANGE_END}brown fox jumped over the extremely lazy dog.`;
 
       const result = mergeAndLayerDiffs(existingDiff, [
@@ -453,6 +465,97 @@ describe("How to Use examples", () => {
         { op: "insert", text: RANGE_END, id: "edit-A" },
         { op: "equal", text: "brown fox jumped over the extremely lazy dog." },
       ]);
+    });
+  });
+
+  describe("modifying the insert", () => {
+    /**
+     * TODO: We still need to test off by one spacing
+     */
+    it("should replace the insert", (ctx) => {
+      const targetA = `The brown fox jumped over the ${RANGE_START}very ${RANGE_END}lazy dog.`;
+
+      const result = mergeAndLayerDiffs(existingDiff, [
+        { targetText: targetA, id: "edit-A" },
+      ]);
+      debugLog(ctx.task.name, existingDiff, targetA, result);
+      expect(result).toEqual([
+        { op: 'equal', text: 'The quick brown fox jumped over the ' },
+        { op: 'insert', text: '', id: 'edit-A' },
+        { op: 'delete', text: 'extremel', id: 'edit-A' },
+        { op: 'insert', text: 'ver', id: 'edit-A' },
+        { op: 'equal', text: 'y ' },
+        { op: 'insert', text: '', id: 'edit-A' },
+        { op: 'equal', text: 'lazy dog.' }
+      ]);
+    });
+
+    it('should insert before the insert', (ctx) => {
+      const targetA = `The brown fox jumped over the ${RANGE_START}very extremely ${RANGE_END}lazy dog.`;
+
+      const result = mergeAndLayerDiffs(existingDiff, [
+        { targetText: targetA, id: "edit-A" },
+      ]);
+      debugLog(ctx.task.name, existingDiff, targetA, result);
+    });
+
+    it('should insert after the insert', (ctx) => {
+      const targetA = `The brown fox jumped over the ${RANGE_START}extremely very ${RANGE_END}lazy dog.`;
+
+      const result = mergeAndLayerDiffs(existingDiff, [
+        { targetText: targetA, id: "edit-A" },
+      ]);
+      debugLog(ctx.task.name, existingDiff, targetA, result);
+    });
+    
+    it('should delete before the insert', (ctx) => {
+      const targetA = `The brown fox jumped over ${RANGE_START}${RANGE_END}lazy dog.`;
+
+      const result = mergeAndLayerDiffs(existingDiff, [
+        { targetText: targetA, id: "edit-A" },
+      ]);
+      debugLog(ctx.task.name, existingDiff, targetA, result);
+    });
+
+    it('should delete after the insert', (ctx) => {
+      const targetA = `The brown fox jumped over the ${RANGE_START}${RANGE_END}dog.`;
+
+      const result = mergeAndLayerDiffs(existingDiff, [
+        { targetText: targetA, id: "edit-A" },
+      ]);
+      debugLog(ctx.task.name, existingDiff, targetA, result);
+    });
+  });
+
+  describe("modifying the delete", () => {
+    /**
+     * TODO: We still need to test off by one spacing
+     */
+    it("should insert at the delete", (ctx) => {
+      const targetA = `The ${RANGE_START}quick ${RANGE_END}brown fox jumped over the extremely lazy dog.`;
+
+      const result = mergeAndLayerDiffs(existingDiff, [
+        { targetText: targetA, id: "edit-A" },
+      ]);
+      debugLog(ctx.task.name, existingDiff, targetA, result);
+    });
+
+    it('should delete before the delete', (ctx) => {
+      const targetA = `${RANGE_START}${RANGE_END}brown fox jumped over the extremely lazy dog.`;
+
+      const result = mergeAndLayerDiffs(existingDiff, [
+        { targetText: targetA, id: "edit-A" },
+      ]);
+      debugLog(ctx.task.name, existingDiff, targetA, result);
+    });
+
+    it('should delete after the delete (fail)', (ctx) => {
+      const targetA = `The ${RANGE_START}${RANGE_END}fox jumped over the extremely lazy dog.`;
+
+      const result = mergeAndLayerDiffs(existingDiff, [
+        { targetText: targetA, id: "edit-A" },
+      ]);
+      debugLog(ctx.task.name, existingDiff, targetA, result);
     });
   });
 });
