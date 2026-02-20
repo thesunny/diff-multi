@@ -1,5 +1,37 @@
+import type { Diff } from "diff-match-patch";
+import { DIFF_DELETE, DIFF_INSERT } from "diff-match-patch";
 import { RANGE_START, RANGE_END } from "./constants";
 import type { Change } from "./types";
+
+/**
+ * Converts a Change array to diff-match-patch Diff array.
+ */
+export function changesToDiffs(changes: Change[]): Diff[] {
+  return changes.map((change) => {
+    if (change.op === "equal") {
+      return [0, change.text] as Diff;
+    } else if (change.op === "insert") {
+      return [1, change.text] as Diff;
+    } else {
+      return [-1, change.text] as Diff;
+    }
+  });
+}
+
+/**
+ * Converts a diff-match-patch Diff array to Change array.
+ */
+export function diffsToChanges(diffs: Diff[], id: string): Change[] {
+  return diffs.map(([op, text]) => {
+    if (op === DIFF_INSERT) {
+      return { op: "insert", text, id } as Change;
+    } else if (op === DIFF_DELETE) {
+      return { op: "delete", text, id } as Change;
+    } else {
+      return { op: "equal", text } as Change;
+    }
+  });
+}
 
 /**
  * Splits text by range markers, keeping the markers as separate items.
