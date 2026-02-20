@@ -325,7 +325,6 @@ describe("How to Use examples", () => {
   );
 
   it('should validate the existing diff', () => {
-    console.log(existingDiff);
     expect(existingDiff).toEqual([
       { op: 'equal', text: 'The ' },
       { op: 'delete', text: 'quick ', id: 'existing' },
@@ -497,6 +496,14 @@ describe("How to Use examples", () => {
         { targetText: targetA, id: "edit-A" },
       ]);
       debugLog(ctx.task.name, existingDiff, targetA, result);
+      expect(result).toEqual([
+        { op: "equal", text: "The quick brown fox jumped over the " },
+        { op: "insert", text: RANGE_START, id: "edit-A" },
+        { op: "insert", text: "very ", id: "edit-A" },
+        { op: "equal", text: "extremely " },
+        { op: "insert", text: RANGE_END, id: "edit-A" },
+        { op: "equal", text: "lazy dog." },
+      ]);
     });
 
     it('should insert after the insert', (ctx) => {
@@ -506,6 +513,14 @@ describe("How to Use examples", () => {
         { targetText: targetA, id: "edit-A" },
       ]);
       debugLog(ctx.task.name, existingDiff, targetA, result);
+      expect(result).toEqual([
+        { op: "equal", text: "The quick brown fox jumped over the " },
+        { op: "insert", text: RANGE_START, id: "edit-A" },
+        { op: "equal", text: "extremely " },
+        { op: "insert", text: "very ", id: "edit-A" },
+        { op: "insert", text: RANGE_END, id: "edit-A" },
+        { op: "equal", text: "lazy dog." },
+      ]);
     });
     
     it('should delete before the insert', (ctx) => {
@@ -515,6 +530,13 @@ describe("How to Use examples", () => {
         { targetText: targetA, id: "edit-A" },
       ]);
       debugLog(ctx.task.name, existingDiff, targetA, result);
+      expect(result).toEqual([
+        { op: "equal", text: "The quick brown fox jumped over " },
+        { op: "insert", text: RANGE_START, id: "edit-A" },
+        { op: "delete", text: "the extremely ", id: "edit-A" },
+        { op: "insert", text: RANGE_END, id: "edit-A" },
+        { op: "equal", text: "lazy dog." },
+      ]);
     });
 
     it('should delete after the insert', (ctx) => {
@@ -524,6 +546,13 @@ describe("How to Use examples", () => {
         { targetText: targetA, id: "edit-A" },
       ]);
       debugLog(ctx.task.name, existingDiff, targetA, result);
+      expect(result).toEqual([
+        { op: "equal", text: "The quick brown fox jumped over the " },
+        { op: "insert", text: RANGE_START, id: "edit-A" },
+        { op: "delete", text: "extremely lazy ", id: "edit-A" },
+        { op: "insert", text: RANGE_END, id: "edit-A" },
+        { op: "equal", text: "dog." },
+      ]);
     });
   });
 
@@ -538,6 +567,13 @@ describe("How to Use examples", () => {
         { targetText: targetA, id: "edit-A" },
       ]);
       debugLog(ctx.task.name, existingDiff, targetA, result);
+      expect(result).toEqual([
+        { op: "equal", text: "The quick " },
+        { op: "insert", text: RANGE_START, id: "edit-A" },
+        { op: "insert", text: "quick ", id: "edit-A" },
+        { op: "insert", text: RANGE_END, id: "edit-A" },
+        { op: "equal", text: "brown fox jumped over the extremely lazy dog." },
+      ]);
     });
 
     it('should delete before the delete', (ctx) => {
@@ -547,6 +583,13 @@ describe("How to Use examples", () => {
         { targetText: targetA, id: "edit-A" },
       ]);
       debugLog(ctx.task.name, existingDiff, targetA, result);
+      expect(result).toEqual([
+        { op: "insert", text: RANGE_START, id: "edit-A" },
+        { op: "delete", text: "The ", id: "edit-A" },
+        { op: "equal", text: "quick " },
+        { op: "insert", text: RANGE_END, id: "edit-A" },
+        { op: "equal", text: "brown fox jumped over the extremely lazy dog." },
+      ]);
     });
 
     it('should delete after the delete (fail)', (ctx) => {
@@ -556,6 +599,13 @@ describe("How to Use examples", () => {
         { targetText: targetA, id: "edit-A" },
       ]);
       debugLog(ctx.task.name, existingDiff, targetA, result);
+      expect(result).toEqual([
+        { op: "equal", text: "The quick " },
+        { op: "insert", text: RANGE_START, id: "edit-A" },
+        { op: "delete", text: "brown ", id: "edit-A" },
+        { op: "insert", text: RANGE_END, id: "edit-A" },
+        { op: "equal", text: "fox jumped over the extremely lazy dog." },
+      ]);
     });
   });
 });
