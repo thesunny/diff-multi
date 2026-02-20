@@ -1,0 +1,3 @@
+# TODO
+
+- [ ] After we do all the diffing and we're at the very end, sometimes our start markers don't include a delete that is to the left. Unfortunately, we're trying to include deletes that were in the existing paragraph, before we layered our diffs on top. And so the delete object doesn't exist in this final result form. So we have to figure out a way to see where the delete was in the existing diff. We're trying to include the delete values before we layer the diff on top of it. So I'm not sure if we can see where the default is. 
