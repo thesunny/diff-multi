@@ -5,7 +5,7 @@ import { RANGE_START, RANGE_END } from "../constants";
 import { logDiff } from "../visualizeDiff";
 
 // Set to true to show debug logs
-const DEBUG = false;
+const DEBUG = true;
 
 function debugLog(...args: (string | Change[] | null)[]): void {
   if (!DEBUG) return;
@@ -354,11 +354,10 @@ describe("How to Use examples", () => {
   });
 
   describe("accepting the delete", () => {
-    it("should accept the delete (fails)", (ctx) => {
-      // This does NOT work because this is a valid interpretation.
-      // I think we always need to include at least one character in the range
-      // for it to work properly. When there is nothing in the range, maybe
-      // expand out the edges by any deletes?
+    it("should accept the delete", (ctx) => {
+      // Range markers placed at the position of a delete will expand to include
+      // that delete. This allows "accepting" a deletion by placing empty range
+      // markers at that position.
       const targetA = `The ${RANGE_START}${RANGE_END}brown fox jumped over the extremely lazy dog.`;
 
       const result = mergeAndLayerDiffs(existingDiff, [
@@ -367,8 +366,9 @@ describe("How to Use examples", () => {
 
       debugLog(ctx.task.name, existingDiff, targetA, result);
       expect(result).toEqual([
-        { op: "equal", text: "The quick " },
+        { op: "equal", text: "The " },
         { op: "insert", text: RANGE_START, id: "edit-A" },
+        { op: "equal", text: "quick " },
         { op: "insert", text: RANGE_END, id: "edit-A" },
         { op: "equal", text: "brown fox jumped over the extremely lazy dog." },
       ]);
@@ -592,7 +592,7 @@ describe("How to Use examples", () => {
       ]);
     });
 
-    it('should delete after the delete (fail)', (ctx) => {
+    it('should delete after the delete maybe (ambiguous)', (ctx) => {
       const targetA = `The ${RANGE_START}${RANGE_END}fox jumped over the extremely lazy dog.`;
 
       const result = mergeAndLayerDiffs(existingDiff, [

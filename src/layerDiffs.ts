@@ -1,6 +1,6 @@
 import type { Diff } from "diff-match-patch";
 import { DIFF_DELETE, DIFF_INSERT, diff_match_patch } from "diff-match-patch";
-import { DELETE_PLACEHOLDER } from "./constants";
+import { DELETE_PLACEHOLDER, RANGE_START, RANGE_END } from "./constants";
 import type { Change } from "./semanticDiff";
 
 /**
@@ -44,6 +44,7 @@ export function layerDiffs(
   // - Other text is processed normally
   const result: Change[] = [];
   let deletedIndex = 0;
+  const placeholderDerivedIndices = new Set<number>();
 
   for (const [op, text] of rawDiffs) {
     // Process the text, handling placeholders
@@ -76,8 +77,10 @@ export function layerDiffs(
       }
 
       // Restore the deleted text as EQUAL (it exists in the document)
+      // Track this index as placeholder-derived for range expansion
       const deletedText = deletedTexts[deletedIndex++];
       if (deletedText) {
+        placeholderDerivedIndices.add(result.length);
         result.push({ op: "equal", text: deletedText });
       }
 
@@ -86,10 +89,73 @@ export function layerDiffs(
     }
   }
 
-  // Step 4: Merge adjacent segments of the same type
-  const merged = mergeAdjacentSegments(result);
+  // Step 4: Split inserts containing range markers into separate inserts
+  // This is needed so the expansion logic can identify isolated RANGE_START markers
+  const splitResult: Change[] = [];
+  const updatedPlaceholderIndices = new Set<number>();
 
-  // Step 5: Apply semantic cleanup on the cleaned result
+  for (const [i, change] of result.entries()) {
+    if (
+      change.op === "insert" &&
+      (change.text.includes(RANGE_START) || change.text.includes(RANGE_END))
+    ) {
+      // Split this insert by range markers
+      const parts = splitTextByRangeMarkers(change.text);
+      for (const part of parts) {
+        if (part.length > 0) {
+          splitResult.push({ op: "insert", text: part, id: change.id });
+        }
+      }
+    } else {
+      // Track placeholder-derived indices in the new array
+      if (placeholderDerivedIndices.has(i)) {
+        updatedPlaceholderIndices.add(splitResult.length);
+      }
+      splitResult.push(change);
+    }
+  }
+
+  // Step 5: Expand empty ranges to include placeholder-derived equals to the left
+  // Only expand when RANGE_START is immediately followed by RANGE_END (empty range).
+  // This handles the "accept delete" case where the user places empty range markers
+  // at the position of a delete. We don't expand when the range has content, as that
+  // would override the user's explicit range placement.
+  for (let i = splitResult.length - 1; i > 0; i--) {
+    const change = splitResult[i];
+    const nextChange = splitResult[i + 1];
+    const prev = splitResult[i - 1];
+
+    if (!change || !prev) continue;
+
+    if (change.op === "insert" && change.text === RANGE_START) {
+      // Only expand if this is an empty range (RANGE_START immediately followed by RANGE_END)
+      if (!nextChange || nextChange.op !== "insert" || nextChange.text !== RANGE_END) {
+        continue;
+      }
+
+      // Check if previous element is a placeholder-derived equal
+      if (updatedPlaceholderIndices.has(i - 1)) {
+        // Don't swap if the element before that is RANGE_END (avoid disrupting other ranges)
+        if (i > 1) {
+          const beforePrev = splitResult[i - 2];
+          if (beforePrev?.op === "insert" && beforePrev.text === RANGE_END) {
+            continue;
+          }
+        }
+        // Swap: move RANGE_START before the placeholder-derived equal
+        splitResult[i - 1] = change;
+        splitResult[i] = prev;
+        // Update tracking set since indices shifted
+        updatedPlaceholderIndices.delete(i - 1);
+        updatedPlaceholderIndices.add(i);
+      }
+    }
+  }
+
+  // Step 6: Merge adjacent segments of the same type
+  const merged = mergeAdjacentSegments(splitResult);
+
+  // Step 7: Apply semantic cleanup on the cleaned result
   return applySemanticCleanup(merged, id);
 }
 
@@ -150,4 +216,30 @@ function applySemanticCleanup(changes: Change[], id: string): Change[] {
       return { op: "equal", text } as Change;
     }
   });
+}
+
+/**
+ * Splits text by range markers, keeping the markers as separate items.
+ */
+function splitTextByRangeMarkers(text: string): string[] {
+  const result: string[] = [];
+  let current = "";
+
+  for (const char of text) {
+    if (char === RANGE_START || char === RANGE_END) {
+      if (current.length > 0) {
+        result.push(current);
+        current = "";
+      }
+      result.push(char);
+    } else {
+      current += char;
+    }
+  }
+
+  if (current.length > 0) {
+    result.push(current);
+  }
+
+  return result;
 }

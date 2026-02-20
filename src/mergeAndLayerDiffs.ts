@@ -2,7 +2,6 @@ import { layerDiffs } from "./layerDiffs";
 import { mergeDiffs } from "./mergeDiffs";
 import { normalizeRangeInDiff } from "./normalizeRangeInDiff";
 import type { Change } from "./semanticDiff";
-import { expandRangeToIncludeDeleteLeftFinal } from "./expandRangeToIncludeDeleteLeftFinal";
 
 /**
  * Represents a single edit to apply to a paragraph.
@@ -62,6 +61,5 @@ export function mergeAndLayerDiffs(
   }
 
   // Normalize range markers to ensure they're in separate inserts
-  return expandRangeToIncludeDeleteLeftFinal(normalizeRangeInDiff(merged));
-  // return normalizeRangeInDiff(merged);
+  return normalizeRangeInDiff(merged);
 }
