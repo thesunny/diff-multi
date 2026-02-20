@@ -5,7 +5,7 @@ import { RANGE_START, RANGE_END } from "../constants";
 import { logDiff } from "../visualizeDiff";
 
 // Set to true to show debug logs
-const DEBUG = true;
+const DEBUG = false;
 
 function debugLog(...args: (string | Change[] | null)[]): void {
   if (!DEBUG) return;

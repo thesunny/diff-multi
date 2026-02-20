@@ -61,5 +61,6 @@ export function mergeAndLayerDiffs(
   }
 
   // Normalize range markers to ensure they're in separate inserts
+  // return expandRangeToIncludeDeleteLeftFinal(normalizeRangeInDiff(merged));
   return normalizeRangeInDiff(merged);
 }
