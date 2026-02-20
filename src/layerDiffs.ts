@@ -2,6 +2,7 @@ import type { Diff } from "diff-match-patch";
 import { DIFF_DELETE, DIFF_INSERT, diff_match_patch } from "diff-match-patch";
 import { DELETE_PLACEHOLDER, RANGE_START, RANGE_END } from "./constants";
 import type { Change } from "./semanticDiff";
+import { splitTextByRangeMarkers } from "./diff-utils";
 
 /**
  * Layers new changes on top of an existing diff.
@@ -218,28 +219,3 @@ function applySemanticCleanup(changes: Change[], id: string): Change[] {
   });
 }
 
-/**
- * Splits text by range markers, keeping the markers as separate items.
- */
-function splitTextByRangeMarkers(text: string): string[] {
-  const result: string[] = [];
-  let current = "";
-
-  for (const char of text) {
-    if (char === RANGE_START || char === RANGE_END) {
-      if (current.length > 0) {
-        result.push(current);
-        current = "";
-      }
-      result.push(char);
-    } else {
-      current += char;
-    }
-  }
-
-  if (current.length > 0) {
-    result.push(current);
-  }
-
-  return result;
-}
