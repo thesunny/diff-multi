@@ -1,5 +1,5 @@
 import { RANGE_START, RANGE_END } from './constants';
-import type { Change } from './semanticDiff';
+import type { Change } from "./types";
 import { splitRangeMarkersInDiff, isRangeMarker } from './diff-utils';
 
 /**

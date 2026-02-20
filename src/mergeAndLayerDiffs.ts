@@ -1,7 +1,7 @@
 import { layerDiffs } from "./layerDiffs";
 import { mergeDiffs } from "./mergeDiffs";
 import { normalizeRangeInDiff } from "./normalizeRangeInDiff";
-import type { Change } from "./semanticDiff";
+import type { Change } from "./types";
 
 /**
  * Represents a single edit to apply to a paragraph.

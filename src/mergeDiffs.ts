@@ -1,4 +1,4 @@
-import type { Change } from "./semanticDiff";
+import type { Change } from "./types";
 import { normalizeRangeInDiff } from "./normalizeRangeInDiff";
 
 type OperationMap = Map<number, { text: string; id: string }[]>;

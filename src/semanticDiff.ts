@@ -1,30 +1,9 @@
 import type { Diff } from "diff-match-patch";
 import { DIFF_DELETE, DIFF_INSERT, diff_match_patch } from "diff-match-patch";
 import { normalizeRangeInDiff } from "./normalizeRangeInDiff";
+import type { Change } from "./types";
 
-type InsertChange = {
-  op: "insert";
-  text: string;
-  id: string;
-};
-
-type DeleteChange = {
-  op: "delete";
-  text: string;
-  id: string;
-};
-
-type EqualChange = {
-  op: "equal";
-  text: string;
-};
-
-/**
- * This is a localized version of the Change type from jsdiff (package `diff`).
- * We are using this to define the `Change` type for semantic diff to retain
- * backwards compatibility with the `diff` package.
- */
-export type Change = InsertChange | DeleteChange | EqualChange;
+export type { Change };
 
 /**
  * Returns a semantic diff using diff-match-patch but the return value is in

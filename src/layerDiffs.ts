@@ -1,7 +1,7 @@
 import type { Diff } from "diff-match-patch";
 import { DIFF_DELETE, DIFF_INSERT, diff_match_patch } from "diff-match-patch";
 import { DELETE_PLACEHOLDER, RANGE_START, RANGE_END } from "./constants";
-import type { Change } from "./semanticDiff";
+import type { Change } from "./types";
 import { splitTextByRangeMarkers } from "./diff-utils";
 
 /**
