@@ -4,7 +4,7 @@ import { layerDiffs } from "../layerDiffs";
 import { logDiff } from "../visualizeDiff";
 
 // Set to true to log test name, existingDiff, targetText, and result for each test
-const DEBUG = false;
+const DEBUG = true;
 
 function debugLog(...args: (string | Change[] | null)[]): void {
   if (!DEBUG) return;
@@ -27,6 +27,24 @@ describe("layerDiffs", () => {
     debugLog(ctx.task.name, existingDiff, targetText, result);
 
     // Should have no changes - deleted text "brown " is preserved in document structure
+    expect(result).toEqual([{ op: "equal", text: "The quick brown fox" }]);
+  });
+
+  it("should return empty diff when target matches visible text with existing insert", (ctx) => {
+    // Existing diff: "The quick brown fox" (inserted "brown ")
+    const existingDiff: Change[] = [
+      { op: "equal", text: "The quick " },
+      { op: "insert", text: "brown ", id: "1" },
+      { op: "equal", text: "fox" },
+    ];
+
+    // Target is same as visible text
+    const targetText = "The quick brown fox";
+    const result = layerDiffs(existingDiff, targetText, "2");
+
+    debugLog(ctx.task.name, existingDiff, targetText, result);
+
+    // Should have no changes - the visible text already matches the target
     expect(result).toEqual([{ op: "equal", text: "The quick brown fox" }]);
   });
 

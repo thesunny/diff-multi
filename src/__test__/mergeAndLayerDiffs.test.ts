@@ -316,3 +316,43 @@ describe("mergeAndLayerDiffs", () => {
     ]);
   });
 });
+
+describe.only("How to Use examples", () => {
+  it("should handle an example from the README (fails)", (ctx) => {
+    const existingDiff = semanticDiff(
+      "The quick brown fox jumped over the lazy dog.",
+      "The brown fox jumped over the extremely lazy dog.",
+      "existing",
+    );
+
+    // This does NOT work because this is a valid interpretation.
+    // I think we always need to include at least one character in the range
+    // for it to work properly.
+    const targetA = `The ${RANGE_START}${RANGE_END}brown fox jumped over the extremely lazy dog.`;
+
+    const result = mergeAndLayerDiffs(existingDiff, [
+      { targetText: targetA, id: "edit-A" },
+    ]);
+
+    debugLog(ctx.task.name, existingDiff, targetA, result);
+  });
+
+  it("should handle an example from the README (works)", (ctx) => {
+    const existingDiff = semanticDiff(
+      "The quick brown fox jumped over the lazy dog.",
+      "The brown fox jumped over the extremely lazy dog.",
+      "existing",
+    );
+
+    // This does NOT work because this is a valid interpretation.
+    // I think we always need to include at least one character in the range
+    // for it to work properly.
+    const targetA = `The${RANGE_START} ${RANGE_END}brown fox jumped over the extremely lazy dog.`;
+
+    const result = mergeAndLayerDiffs(existingDiff, [
+      { targetText: targetA, id: "edit-A" },
+    ]);
+
+    debugLog(ctx.task.name, existingDiff, targetA, result);
+  });
+});
