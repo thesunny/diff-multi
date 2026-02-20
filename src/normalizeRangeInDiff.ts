@@ -1,6 +1,5 @@
-import { RANGE_START, RANGE_END } from './constants';
 import type { Change } from "./types";
-import { splitRangeMarkersInDiff, isRangeMarker } from './diff-utils';
+import { splitRangeMarkersInDiff, isRangeMarker, isRangeStart, isRangeEnd } from './diff-utils';
 
 /**
  * Normalizes range markers (RANGE_START and RANGE_END) in a diff.
@@ -58,9 +57,9 @@ function normalizeRangeForId(diff: Change[], targetId: string): Change[] {
     if (change.op === 'equal') continue;
     if (!('id' in change) || change.id !== targetId) continue;
 
-    if (change.op === 'insert' && change.text === RANGE_START) {
+    if (isRangeStart(change)) {
       rangeStartIdx = i;
-    } else if (change.op === 'insert' && change.text === RANGE_END) {
+    } else if (isRangeEnd(change)) {
       rangeEndIdx = i;
     } else if (!isRangeMarker(change)) {
       // This is a content edit (not a range marker)
@@ -108,7 +107,7 @@ function normalizeRangeForId(diff: Change[], targetId: string): Change[] {
  */
 function findRangeEndIdx(diff: Change[], targetId: string): number {
   for (const [i, change] of diff.entries()) {
-    if (change.op === 'insert' && 'id' in change && change.id === targetId && change.text === RANGE_END) {
+    if (isRangeEnd(change) && 'id' in change && change.id === targetId) {
       return i;
     }
   }

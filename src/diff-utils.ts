@@ -95,3 +95,63 @@ export function isRangeMarker(change: Change): boolean {
     (change.text === RANGE_START || change.text === RANGE_END)
   );
 }
+
+/**
+ * Checks if a change is a RANGE_START insert.
+ */
+export function isRangeStart(change: Change): boolean {
+  return change.op === "insert" && change.text === RANGE_START;
+}
+
+/**
+ * Checks if a change is a RANGE_END insert.
+ */
+export function isRangeEnd(change: Change): boolean {
+  return change.op === "insert" && change.text === RANGE_END;
+}
+
+/**
+ * Safely extracts the id from a Change, returning undefined for equal operations.
+ */
+export function getChangeId(change: Change | undefined): string | undefined {
+  if (!change || change.op === "equal") {
+    return undefined;
+  }
+  return change.id;
+}
+
+/**
+ * Merges adjacent Change segments of the same operation type and id.
+ */
+export function mergeAdjacentSegments(changes: Change[]): Change[] {
+  if (changes.length === 0) return changes;
+
+  const result: Change[] = [];
+  for (const change of changes) {
+    const last = result[result.length - 1];
+    // Merge adjacent segments of the same operation type (and same id for insert/delete)
+    if (last && last.op === change.op) {
+      if (change.op === "equal") {
+        last.text += change.text;
+        continue;
+      }
+      if (
+        last.op !== "equal" &&
+        (change.op === "insert" || change.op === "delete") &&
+        last.id === change.id
+      ) {
+        last.text += change.text;
+        continue;
+      }
+    }
+    // Create new segment
+    if (change.op === "equal") {
+      result.push({ op: "equal", text: change.text });
+    } else if (change.op === "insert") {
+      result.push({ op: "insert", text: change.text, id: change.id });
+    } else {
+      result.push({ op: "delete", text: change.text, id: change.id });
+    }
+  }
+  return result;
+}

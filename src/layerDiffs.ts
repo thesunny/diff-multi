@@ -2,7 +2,7 @@ import type { Diff } from "diff-match-patch";
 import { DIFF_DELETE, DIFF_INSERT, diff_match_patch } from "diff-match-patch";
 import { DELETE_PLACEHOLDER, RANGE_START, RANGE_END } from "./constants";
 import type { Change } from "./types";
-import { splitTextByRangeMarkers, changesToDiffs, diffsToChanges } from "./diff-utils";
+import { splitTextByRangeMarkers, changesToDiffs, diffsToChanges, mergeAdjacentSegments, isRangeStart, isRangeEnd } from "./diff-utils";
 
 /**
  * Layers new changes on top of an existing diff.
@@ -128,9 +128,9 @@ export function layerDiffs(
 
     if (!change || !prev) continue;
 
-    if (change.op === "insert" && change.text === RANGE_START) {
+    if (isRangeStart(change)) {
       // Only expand if this is an empty range (RANGE_START immediately followed by RANGE_END)
-      if (!nextChange || nextChange.op !== "insert" || nextChange.text !== RANGE_END) {
+      if (!nextChange || !isRangeEnd(nextChange)) {
         continue;
       }
 
@@ -139,7 +139,7 @@ export function layerDiffs(
         // Don't swap if the element before that is RANGE_END (avoid disrupting other ranges)
         if (i > 1) {
           const beforePrev = splitResult[i - 2];
-          if (beforePrev?.op === "insert" && beforePrev.text === RANGE_END) {
+          if (beforePrev && isRangeEnd(beforePrev)) {
             continue;
           }
         }
@@ -158,39 +158,6 @@ export function layerDiffs(
 
   // Step 7: Apply semantic cleanup on the cleaned result
   return applySemanticCleanup(merged, id);
-}
-
-function mergeAdjacentSegments(changes: Change[]): Change[] {
-  if (changes.length === 0) return changes;
-
-  const result: Change[] = [];
-  for (const change of changes) {
-    const last = result[result.length - 1];
-    // Merge adjacent segments of the same operation type (and same id for insert/delete)
-    if (last && last.op === change.op) {
-      if (change.op === "equal") {
-        last.text += change.text;
-        continue;
-      }
-      if (
-        last.op !== "equal" &&
-        (change.op === "insert" || change.op === "delete") &&
-        last.id === change.id
-      ) {
-        last.text += change.text;
-        continue;
-      }
-    }
-    // Create new segment
-    if (change.op === "equal") {
-      result.push({ op: "equal", text: change.text });
-    } else if (change.op === "insert") {
-      result.push({ op: "insert", text: change.text, id: change.id });
-    } else {
-      result.push({ op: "delete", text: change.text, id: change.id });
-    }
-  }
-  return result;
 }
 
 function applySemanticCleanup(changes: Change[], id: string): Change[] {

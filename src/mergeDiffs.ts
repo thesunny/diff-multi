@@ -1,14 +1,8 @@
 import type { Change } from "./types";
 import { normalizeRangeInDiff } from "./normalizeRangeInDiff";
+import { getChangeId } from "./diff-utils";
 
 type OperationMap = Map<number, { text: string; id: string }[]>;
-
-const getChangeId = (change: Change | undefined): string | undefined => {
-  if (!change || change.op === "equal") {
-    return undefined;
-  }
-  return change.id;
-};
 
 function mergeTwoDiffs(diff1: Change[], diff2: Change[]): Change[] | null {
   const addInsert = (map: OperationMap, index: number, change: Change) => {
