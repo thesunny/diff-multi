@@ -317,14 +317,6 @@ describe("mergeAndLayerDiffs", () => {
   });
 });
 
-// ### Accepting the insert
-
-// For the <ins> let's say we also want to indicate that we agree with the change by marking it and showing the target with the <ins>.
-
-// > The brown fox jumped over the <start>extremely </end>lazy dog.
-
-// The same thing here. We mark the start/end of the edit, and everything outside of it is exactly the same as the version with existing edits applied.
-
 describe("How to Use examples", () => {
   const existingDiff = semanticDiff(
     "The quick brown fox jumped over the lazy dog.",
@@ -332,127 +324,135 @@ describe("How to Use examples", () => {
     "existing",
   );
 
-  it("should accept the insert", (ctx) => {
-    const targetA = `The brown fox jumped over the ${RANGE_START}extremely ${RANGE_END}lazy dog.`;
+  describe("accepting the insert", () => {
+    it("should accept the insert", (ctx) => {
+      const targetA = `The brown fox jumped over the ${RANGE_START}extremely ${RANGE_END}lazy dog.`;
 
-    const result = mergeAndLayerDiffs(existingDiff, [
-      { targetText: targetA, id: "edit-A" },
-    ]);
+      const result = mergeAndLayerDiffs(existingDiff, [
+        { targetText: targetA, id: "edit-A" },
+      ]);
 
-    debugLog(ctx.task.name, existingDiff, targetA, result);
-    expect(result).toEqual([
-      { op: "equal", text: "The quick brown fox jumped over the " },
-      { op: "insert", text: RANGE_START, id: "edit-A" },
-      { op: "equal", text: "extremely " },
-      { op: "insert", text: RANGE_END, id: "edit-A" },
-      { op: "equal", text: "lazy dog." },
-    ]);
+      debugLog(ctx.task.name, existingDiff, targetA, result);
+      expect(result).toEqual([
+        { op: "equal", text: "The quick brown fox jumped over the " },
+        { op: "insert", text: RANGE_START, id: "edit-A" },
+        { op: "equal", text: "extremely " },
+        { op: "insert", text: RANGE_END, id: "edit-A" },
+        { op: "equal", text: "lazy dog." },
+      ]);
+    });
   });
 
-  it("should accept the delete (fails)", (ctx) => {
-    // This does NOT work because this is a valid interpretation.
-    // I think we always need to include at least one character in the range
-    // for it to work properly.
-    const targetA = `The ${RANGE_START}${RANGE_END}brown fox jumped over the extremely lazy dog.`;
+  describe("accepting the delete", () => {
+    it("should accept the delete (fails)", (ctx) => {
+      // This does NOT work because this is a valid interpretation.
+      // I think we always need to include at least one character in the range
+      // for it to work properly.
+      const targetA = `The ${RANGE_START}${RANGE_END}brown fox jumped over the extremely lazy dog.`;
 
-    const result = mergeAndLayerDiffs(existingDiff, [
-      { targetText: targetA, id: "edit-A" },
-    ]);
+      const result = mergeAndLayerDiffs(existingDiff, [
+        { targetText: targetA, id: "edit-A" },
+      ]);
 
-    debugLog(ctx.task.name, existingDiff, targetA, result);
-    expect(result).toEqual([
-      { op: "equal", text: "The quick " },
-      { op: "insert", text: RANGE_START, id: "edit-A" },
-      { op: "insert", text: RANGE_END, id: "edit-A" },
-      { op: "equal", text: "brown fox jumped over the extremely lazy dog." },
-    ]);
+      debugLog(ctx.task.name, existingDiff, targetA, result);
+      expect(result).toEqual([
+        { op: "equal", text: "The quick " },
+        { op: "insert", text: RANGE_START, id: "edit-A" },
+        { op: "insert", text: RANGE_END, id: "edit-A" },
+        { op: "equal", text: "brown fox jumped over the extremely lazy dog." },
+      ]);
+    });
+
+    it("should accept the delete", (ctx) => {
+      // This version DOES work because it includes at least one character in the range
+      const targetA = `The${RANGE_START} ${RANGE_END}brown fox jumped over the extremely lazy dog.`;
+
+      const result = mergeAndLayerDiffs(existingDiff, [
+        { targetText: targetA, id: "edit-A" },
+      ]);
+
+      debugLog(ctx.task.name, existingDiff, targetA, result);
+      expect(result).toEqual([
+        { op: "equal", text: "The" },
+        { op: "insert", text: RANGE_START, id: "edit-A" },
+        { op: "equal", text: " quick " },
+        { op: "insert", text: RANGE_END, id: "edit-A" },
+        { op: "equal", text: "brown fox jumped over the extremely lazy dog." },
+      ]);
+    });
   });
 
-  it("should accept the delete", (ctx) => {
-    // This version DOES work because it includes at least one character in the range
-    const targetA = `The${RANGE_START} ${RANGE_END}brown fox jumped over the extremely lazy dog.`;
+  describe("rejecting the insert", () => {
+    it("should reject the insert", (ctx) => {
+      const targetA = `The brown fox jumped over the ${RANGE_START}${RANGE_END}lazy dog.`;
 
-    const result = mergeAndLayerDiffs(existingDiff, [
-      { targetText: targetA, id: "edit-A" },
-    ]);
+      const result = mergeAndLayerDiffs(existingDiff, [
+        { targetText: targetA, id: "edit-A" },
+      ]);
 
-    debugLog(ctx.task.name, existingDiff, targetA, result);
-    expect(result).toEqual([
-      { op: "equal", text: "The" },
-      { op: "insert", text: RANGE_START, id: "edit-A" },
-      { op: "equal", text: " quick " },
-      { op: "insert", text: RANGE_END, id: "edit-A" },
-      { op: "equal", text: "brown fox jumped over the extremely lazy dog." },
-    ]);
+      debugLog(ctx.task.name, existingDiff, targetA, result);
+      expect(result).toEqual([
+        { op: "equal", text: "The quick brown fox jumped over the " },
+        { op: "insert", text: RANGE_START, id: "edit-A" },
+        { op: "delete", text: "extremely ", id: "edit-A" },
+        { op: "insert", text: RANGE_END, id: "edit-A" },
+        { op: "equal", text: "lazy dog." },
+      ]);
+    });
+
+    it("should reject the insert", (ctx) => {
+      const targetA = `The brown fox jumped over the${RANGE_START}${RANGE_END} lazy dog.`;
+
+      const result = mergeAndLayerDiffs(existingDiff, [
+        { targetText: targetA, id: "edit-A" },
+      ]);
+
+      debugLog(ctx.task.name, existingDiff, targetA, result);
+      expect(result).toEqual([
+        { op: "equal", text: "The quick brown fox jumped over the" },
+        { op: "insert", text: RANGE_START, id: "edit-A" },
+        { op: "delete", text: " extremely", id: "edit-A" },
+        { op: "insert", text: RANGE_END, id: "edit-A" },
+        { op: "equal", text: " lazy dog." },
+      ]);
+    });
+
+    it("should reject the insert (this is weird)", (ctx) => {
+      const targetA = `The brown fox jumped over the${RANGE_START} ${RANGE_END}lazy dog.`;
+
+      const result = mergeAndLayerDiffs(existingDiff, [
+        { targetText: targetA, id: "edit-A" },
+      ]);
+
+      debugLog(ctx.task.name, existingDiff, targetA, result);
+      expect(result).toEqual([
+        { op: "equal", text: "The quick brown fox jumped over the" },
+        { op: "insert", text: RANGE_START, id: "edit-A" },
+        { op: "delete", text: " extremely ", id: "edit-A" },
+        { op: "insert", text: " ", id: "edit-A" },
+        { op: "insert", text: RANGE_END, id: "edit-A" },
+        { op: "equal", text: "lazy dog." },
+      ]);
+    });
   });
 
-  it("should reject the insert", (ctx) => {
-    const targetA = `The brown fox jumped over the ${RANGE_START}${RANGE_END}lazy dog.`;
+  describe("rejecting the delete", () => {
+    it("should reject the delete", (ctx) => {
+      const targetA = `The ${RANGE_START}quick ${RANGE_END}brown fox jumped over the extremely lazy dog.`;
 
-    const result = mergeAndLayerDiffs(existingDiff, [
-      { targetText: targetA, id: "edit-A" },
-    ]);
+      const result = mergeAndLayerDiffs(existingDiff, [
+        { targetText: targetA, id: "edit-A" },
+      ]);
 
-    debugLog(ctx.task.name, existingDiff, targetA, result);
-    expect(result).toEqual([
-      { op: "equal", text: "The quick brown fox jumped over the " },
-      { op: "insert", text: "", id: "edit-A" },
-      { op: "delete", text: "extremely ", id: "edit-A" },
-      { op: "insert", text: "", id: "edit-A" },
-      { op: "equal", text: "lazy dog." },
-    ]);
-  });
+      debugLog(ctx.task.name, existingDiff, targetA, result);
 
-  it("should reject the insert", (ctx) => {
-    const targetA = `The brown fox jumped over the${RANGE_START}${RANGE_END} lazy dog.`;
-
-    const result = mergeAndLayerDiffs(existingDiff, [
-      { targetText: targetA, id: "edit-A" },
-    ]);
-
-    debugLog(ctx.task.name, existingDiff, targetA, result);
-    expect(result).toEqual([
-      { op: "equal", text: "The quick brown fox jumped over the" },
-      { op: "insert", text: "", id: "edit-A" },
-      { op: "delete", text: " extremely", id: "edit-A" },
-      { op: "insert", text: "", id: "edit-A" },
-      { op: "equal", text: " lazy dog." },
-    ]);
-  });
-
-  it("should reject the insert (this is weird)", (ctx) => {
-    const targetA = `The brown fox jumped over the${RANGE_START} ${RANGE_END}lazy dog.`;
-
-    const result = mergeAndLayerDiffs(existingDiff, [
-      { targetText: targetA, id: "edit-A" },
-    ]);
-
-    debugLog(ctx.task.name, existingDiff, targetA, result);
-    expect(result).toEqual([
-      { op: "equal", text: "The quick brown fox jumped over the" },
-      { op: "insert", text: RANGE_START, id: "edit-A" },
-      { op: "delete", text: " extremely ", id: "edit-A" },
-      { op: "insert", text: " ", id: "edit-A" },
-      { op: "insert", text: RANGE_END, id: "edit-A" },
-      { op: "equal", text: "lazy dog." },
-    ]);
-  });
-
-  it('should reject the delete', (ctx) => {
-    const targetA = `The ${RANGE_START}quick ${RANGE_END}brown fox jumped over the extremely lazy dog.`;
-
-    const result = mergeAndLayerDiffs(existingDiff, [
-      { targetText: targetA, id: "edit-A" },
-    ]);
-
-    debugLog(ctx.task.name, existingDiff, targetA, result);
-
-    expect(result).toEqual([
-      { op: 'equal', text: 'The quick ' },
-      { op: 'insert', text: RANGE_START, id: 'edit-A' },
-      { op: 'insert', text: 'quick ', id: 'edit-A' },
-      { op: "insert", text: RANGE_END, id: "edit-A" },
-      { op: "equal", text: "brown fox jumped over the extremely lazy dog." },
-    ]);
+      expect(result).toEqual([
+        { op: "equal", text: "The quick " },
+        { op: "insert", text: RANGE_START, id: "edit-A" },
+        { op: "insert", text: "quick ", id: "edit-A" },
+        { op: "insert", text: RANGE_END, id: "edit-A" },
+        { op: "equal", text: "brown fox jumped over the extremely lazy dog." },
+      ]);
+    });
   });
 });
